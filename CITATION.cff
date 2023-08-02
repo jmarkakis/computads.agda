@@ -1,0 +1,20 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Agda formalisation of computads for ω-categories
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Ioannis
+    family-names: Markakis
+    email: ioannis0markakis@gmail.com
+    affiliation: University of Cambridge
+    orcid: 'https://orcid.org/0000-0001-7553-9009'
+repository-code: 'https://github.com/jmarkakis/computads.agda'
+abstract: >-
+  A formalisation of the theory of computads for weak
+  ω-categories in the proof assistant Agda. It works with
+  Agda 2.6.3 and the standard library version 1.7.1.
