@@ -1,4 +1,4 @@
-{- 
+{-
 Author : Ioannis Markakis (github.com/jmarkakis)
 with significant help by Alex Rice (github.com/alexarice)
 -}
@@ -13,9 +13,9 @@ open import Data.Nat renaming (ℕ to Nat)
 open import Data.Nat.Properties
 open import Data.Product
 open import Function
-open import Level using (Level; Lift; lift) 
+open import Level using (Level; Lift; lift)
   renaming (suc to lsuc; zero to lzero; _⊔_ to lmax)
-open import Relation.Binary.Definitions 
+open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Relation.Nullary.Decidable
@@ -28,7 +28,7 @@ open import Relation.Nullary.Decidable
 -- and uniqueness of identity proofs. We will start by an easy lemma on the
 -- identity of iterated Σ-types
 
-postulate 
+postulate
   ExtΠ : {ℓ : Level} → Axiom.Extensionality.Propositional.Extensionality ℓ ℓ
   Ext≡ : {ℓ : Level}{A : Set ℓ} → Axiom.UniquenessOfIdentityProofs.UIP A
 
@@ -39,11 +39,11 @@ cong₃ f refl refl refl = refl
 
 ExtΣ : {ℓ : Level}{A B : Set ℓ}{C : A → B → Set ℓ}{a a' : A}{b b' : B}
   {c : C a b}{c' : C a' b'}
-  (pa : a ≡ a')(pb : b ≡ b')(pc : subst₂ C pa pb c ≡ c' ) → 
+  (pa : a ≡ a')(pb : b ≡ b')(pc : subst₂ C pa pb c ≡ c' ) →
   (a , b , c) ≡ (a' , b' , c')
 ExtΣ = cong₃ (λ a b c → a , b , c)
 
-
+{- 1. Batanin Trees -}
 --------------------------------------------------------------------------------
 -- We start by defining Batanin trees and their dimension. We also give an
 -- inductive definition of the globular set of positions of a Batanin tree B,
@@ -60,7 +60,7 @@ data Bat : Set where
   br : List Bat → Bat
 
 dim : Bat → Nat
-dim (br []) = zero 
+dim (br []) = zero
 dim (br (B ∷ L)) = suc (dim B ) ⊔ dim (br L)
 
 data Pos : Nat → Bat → Set where
@@ -74,7 +74,7 @@ bdryPos {zero} ff (inl B L p) = init (br (B ∷ L))
 bdryPos {zero} tt (inl B L p) = inr B L (init (br L))
 bdryPos {suc n} b (inl B L p) = inl B L (bdryPos b p)
 
-globPos : {n : Nat}{B : Bat}(p : Pos (suc (suc n)) B)(b : Bool) 
+globPos : {n : Nat}{B : Bat}(p : Pos (suc (suc n)) B)(b : Bool)
   → bdryPos b (bdryPos ff p) ≡ bdryPos b (bdryPos tt p)
 globPos {zero} (inl B L p) ff = refl
 globPos {zero} (inl B L p) tt = refl
@@ -117,20 +117,20 @@ bdryPosSet {br (B ∷ L)} tt (inr .B .L q) = bdryPosSet tt q
 -- have decidable equality (to define singletons) and to compute suprema of
 -- Booleans indexed by positions (to define unions).
 
-injectivity-of-inl : {n : Nat}{B : Bat}{L : List Bat}{p p' : Pos n B} 
+injectivity-of-inl : {n : Nat}{B : Bat}{L : List Bat}{p p' : Pos n B}
   → inl B L p ≡ inl B L p' → p ≡ p'
 injectivity-of-inl refl = refl
 
-injectivity-of-inr : {n : Nat}{B : Bat}{L : List Bat}{q q' : Pos n (br L)} 
+injectivity-of-inr : {n : Nat}{B : Bat}{L : List Bat}{q q' : Pos n (br L)}
   → inr B L q ≡ inr B L q' → q ≡ q'
 injectivity-of-inr refl = refl
 
 DecEqPos : {n : Nat}{B : Bat} → DecidableEquality (Pos n B)
 DecEqPos (init B) (init .B) = yes refl
-DecEqPos (inl B L p) (inl .B .L p') with DecEqPos p p' 
+DecEqPos (inl B L p) (inl .B .L p') with DecEqPos p p'
 ... | yes p=p' = yes (cong (inl B L) p=p')
 ... | no p≠p' = no λ h → p≠p' (injectivity-of-inl h)
-DecEqPos (inr B L q) (inr .B .L q') with DecEqPos q q' 
+DecEqPos (inr B L q) (inr .B .L q') with DecEqPos q q'
 ... | yes q=q' = yes (cong (inr B L) q=q')
 ... | no q≠q' = no λ h → q≠q' (injectivity-of-inr h)
 DecEqPos (inr B L q) (init .(br (B ∷ L))) = no λ ()
@@ -144,15 +144,16 @@ Singleton p p' = isYes (DecEqPos p p')
 suprBool : {n : Nat}{B : Bat}(f : Pos n B → Bool) → Bool
 suprBool {zero} {br []} f = f (init (br []))
 suprBool {suc n} {br []} f = ff
-suprBool {zero} {br (B ∷ L)} f = 
+suprBool {zero} {br (B ∷ L)} f =
     f (init (br (B ∷ L))) ∨ suprBool (λ q → f (inr B L q))
-suprBool {suc n} {br (B ∷ L)} f = 
+suprBool {suc n} {br (B ∷ L)} f =
   suprBool (λ p → f (inl B L p)) ∨ suprBool (λ q → f (inl B L q))
 
-Union : {u : Level}{n : Nat}{B : Bat}{X : Set u}(S : Pos n B → X → Bool) 
+Union : {u : Level}{n : Nat}{B : Bat}{X : Set u}(S : Pos n B → X → Bool)
   → X → Bool
 Union S x = suprBool (λ p → S p x)
 
+{- 2. Globular Sets -}
 --------------------------------------------------------------------------------
 -- We will now introduce by induction on the dimension n:
 -- (1) the category gSet­ₙ of n-globular sets
@@ -166,51 +167,51 @@ Union S x = suprBool (λ p → S p x)
 -- sending a top-dimensional cell to the pair of its source and target cells
 
 -- Before stating the definitions, we observe that an (n+1)­­-globular set is
--- an n-globular set X together with a set Xₙ­₊₁ and a a source/target function 
--- Xₙ­₊₁ → gSetSphereₙ X. 
+-- an n-globular set X together with a set Xₙ­₊₁ and a a source/target function
+-- Xₙ­₊₁ → gSetSphereₙ X.
 
 {-1-}
 gSet : (ℓ : Level)(n : Nat) → Set (lsuc ℓ)
 gSetM : {ℓ : Level}{n : Nat}(X Y : gSet ℓ n) → Set ℓ
-gSet∘ : {ℓ : Level}{n : Nat}{X Y Z : gSet ℓ n}(f : gSetM Y Z)(g : gSetM X Y) 
+gSet∘ : {ℓ : Level}{n : Nat}{X Y Z : gSet ℓ n}(f : gSetM Y Z)(g : gSetM X Y)
   → gSetM X Z
 gSetId : {ℓ : Level}{n : Nat}{X : gSet ℓ n} → gSetM X X
 gSetAss : {ℓ : Level}{n : Nat}{X Y Z W : gSet ℓ n}(f : gSetM Z W)
-  (g : gSetM Y Z)(h : gSetM X Y) → gSet∘ f (gSet∘ g h) ≡ gSet∘ (gSet∘ f g) h 
-gSetLu : {ℓ : Level}{n : Nat}{X Y : gSet ℓ n}(f : gSetM X Y) 
+  (g : gSetM Y Z)(h : gSetM X Y) → gSet∘ f (gSet∘ g h) ≡ gSet∘ (gSet∘ f g) h
+gSetLu : {ℓ : Level}{n : Nat}{X Y : gSet ℓ n}(f : gSetM X Y)
   → gSet∘ gSetId f ≡ f
-gSetRu : {ℓ : Level}{n : Nat}{X Y : gSet ℓ n}(f : gSetM X Y) 
+gSetRu : {ℓ : Level}{n : Nat}{X Y : gSet ℓ n}(f : gSetM X Y)
   → gSet∘ f gSetId ≡ f
 
 {-2-}
 gSetTr : {ℓ : Level}{n : Nat}(X : gSet ℓ (suc n)) → gSet ℓ n
-gSetTrM : {ℓ : Level}{n : Nat}{X Y : gSet ℓ (suc n)}(f : gSetM X Y) 
+gSetTrM : {ℓ : Level}{n : Nat}{X Y : gSet ℓ (suc n)}(f : gSetM X Y)
   → gSetM (gSetTr X) (gSetTr Y)
 gSetTr∘ : {ℓ : Level}{n : Nat}{X Y Z : gSet ℓ (suc n)}(f : gSetM Y Z)
   (g : gSetM X Y) → gSet∘ (gSetTrM f) (gSetTrM g) ≡ gSetTrM (gSet∘ f g)
-gSetTrId : {ℓ : Level}{n : Nat}{X : gSet ℓ (suc n)} 
+gSetTrId : {ℓ : Level}{n : Nat}{X : gSet ℓ (suc n)}
   → gSetTrM (gSetId {X = X}) ≡ gSetId
 
 {-3-}
 gSetCell : {ℓ : Level}{n : Nat}(X : gSet ℓ n) → Set ℓ
-gSetCellM : {ℓ : Level}{n : Nat}{X Y : gSet ℓ n}(f : gSetM X Y) → gSetCell X 
+gSetCellM : {ℓ : Level}{n : Nat}{X Y : gSet ℓ n}(f : gSetM X Y) → gSetCell X
   → gSetCell Y
 gSetCell∘ : {ℓ : Level}{n : Nat}{X Y Z : gSet ℓ n}(f : gSetM Y Z)(g : gSetM X Y)
   → (gSetCellM f) ∘ (gSetCellM g) ≡ gSetCellM (gSet∘ f g)
-gSetCellId : {ℓ : Level}{n : Nat}{X : gSet ℓ n} 
+gSetCellId : {ℓ : Level}{n : Nat}{X : gSet ℓ n}
   → gSetCellM (gSetId {X = X}) ≡ id
 
 {-4-}
 gSetSphere : {ℓ : Level}{n : Nat}(X : gSet ℓ n) → Set ℓ
-gSetSphereM : {ℓ : Level}{n : Nat}{X Y : gSet ℓ n}(f : gSetM X Y) → gSetSphere X 
+gSetSphereM : {ℓ : Level}{n : Nat}{X Y : gSet ℓ n}(f : gSetM X Y) → gSetSphere X
   → gSetSphere Y
 gSetSphere∘ : {ℓ : Level}{n : Nat}{X Y Z : gSet ℓ n}(f : gSetM Y Z)
   (g : gSetM X Y) → (gSetSphereM f) ∘ (gSetSphereM g) ≡ gSetSphereM (gSet∘ f g)
-gSetSphereId : {ℓ : Level}{n : Nat}{X : gSet ℓ n} 
+gSetSphereId : {ℓ : Level}{n : Nat}{X : gSet ℓ n}
   → gSetSphereM (gSetId {X = X}) ≡ id
 
 {-5-}
-gSetBdry : {ℓ : Level}{n : Nat}(X : gSet ℓ (suc n))(x : gSetCell X) 
+gSetBdry : {ℓ : Level}{n : Nat}(X : gSet ℓ (suc n))(x : gSetCell X)
   → gSetSphere (gSetTr X)
 gSetBdryM : {ℓ : Level}{n : Nat}{X Y : gSet ℓ (suc n)}(f : gSetM X Y)
   → (gSetBdry Y) ∘ (gSetCellM f) ≡ (gSetSphereM (gSetTrM f)) ∘ (gSetBdry X)
@@ -220,7 +221,7 @@ gSetBdryM : {ℓ : Level}{n : Nat}{X Y : gSet ℓ (suc n)}(f : gSetM X Y)
 -- proceed to give their actual definitions.
 
 gSet ℓ zero = Set ℓ
-gSet ℓ (suc n) = 
+gSet ℓ (suc n) =
   Σ[ X ∈ gSet ℓ n ]
   Σ[ Xₙ₊₁ ∈ Set ℓ ]
   (Xₙ₊₁ → gSetSphere X)
@@ -229,13 +230,13 @@ gSetCell {n = zero} X = X
 gSetCell {n = suc n} (_ , Xₙ₊₁ , _) = Xₙ₊₁
 gSetBdry (_ , _ , φ)= φ
 gSetSphere {n = zero} X = X × X
-gSetSphere {n = suc n} X = 
+gSetSphere {n = suc n} X =
   Σ[ s ∈ gSetCell X ]
   Σ[ t ∈ gSetCell X ]
   gSetBdry X s ≡ gSetBdry X t
 
 gSetM {n = zero} X Y = X → Y
-gSetM {n = suc n} (X , Xₙ₊₁ , φX) (Y , Yₙ₊₁ , φY) = 
+gSetM {n = suc n} (X , Xₙ₊₁ , φX) (Y , Yₙ₊₁ , φY) =
   Σ[ f ∈ gSetM X Y ]
   Σ[ fₙ₊₁ ∈ (Xₙ₊₁ → Yₙ₊₁) ]
   φY ∘ fₙ₊₁ ≡ (gSetSphereM f) ∘ φX
@@ -243,41 +244,41 @@ gSetTrM (f , _)= f
 gSetCellM {n = zero} f = f
 gSetCellM {n = suc n} (_ , fₙ₊₁ , _) = fₙ₊₁
 gSetSphereM {n = zero} f (s , t) = (f s , f t)
-gSetSphereM {n = suc n} {X , Xₙ₊₁ , φX} {Y , Yₙ₊₁ , φY} (f , fₙ₊₁ , f∂) 
-  (s , t , φs=φt) = (fₙ₊₁ s , fₙ₊₁ t , (begin 
-    φY (fₙ₊₁ s) 
-      ≡⟨ cong-app f∂ s ⟩ 
+gSetSphereM {n = suc n} {X , Xₙ₊₁ , φX} {Y , Yₙ₊₁ , φY} (f , fₙ₊₁ , f∂)
+  (s , t , φs=φt) = (fₙ₊₁ s , fₙ₊₁ t , (begin
+    φY (fₙ₊₁ s)
+      ≡⟨ cong-app f∂ s ⟩
     (gSetSphereM f) (φX s)
-      ≡⟨ cong (gSetSphereM f) φs=φt ⟩ 
+      ≡⟨ cong (gSetSphereM f) φs=φt ⟩
     (gSetSphereM f) (φX t)
-      ≡⟨ sym (cong-app f∂ t) ⟩ 
-    φY (fₙ₊₁ t) 
+      ≡⟨ sym (cong-app f∂ t) ⟩
+    φY (fₙ₊₁ t)
       ∎))
 gSetBdryM (_ , _ , ∂f) = ∂f
 
 gSet∘ {n = zero} f g = f ∘ g
-gSet∘ {n = suc n} {X , Xₙ₊₁ , φX} {Y , Yₙ₊₁ , φY} {Z , Zₙ₊₁ , φZ} (f , fₙ₊₁ , f∂) 
-  (g , gₙ₊₁ , g∂) =  gSet∘ f g , fₙ₊₁ ∘ gₙ₊₁ , ExtΠ λ x → begin 
-    φZ (fₙ₊₁ (gₙ₊₁ x)) 
-      ≡⟨ cong-app f∂ (gₙ₊₁ x) ⟩ 
+gSet∘ {n = suc n} {X , Xₙ₊₁ , φX} {Y , Yₙ₊₁ , φY} {Z , Zₙ₊₁ , φZ} (f , fₙ₊₁ , f∂)
+  (g , gₙ₊₁ , g∂) =  gSet∘ f g , fₙ₊₁ ∘ gₙ₊₁ , ExtΠ λ x → begin
+    φZ (fₙ₊₁ (gₙ₊₁ x))
+      ≡⟨ cong-app f∂ (gₙ₊₁ x) ⟩
     gSetSphereM f (φY (gₙ₊₁ x))
       ≡⟨ cong (gSetSphereM f) (cong-app g∂ x) ⟩
     gSetSphereM f (gSetSphereM g (φX x))
       ≡⟨ cong-app (gSetSphere∘ f g) (φX x) ⟩
-    gSetSphereM (gSet∘ f g) (φX x) 
-      ∎  
+    gSetSphereM (gSet∘ f g) (φX x)
+      ∎
 gSetTr∘ f g = refl
 gSetCell∘ {n = zero} f g = refl
 gSetCell∘ {n = suc n} f g = refl
 gSetSphere∘ {n = zero} f g = refl
 gSetSphere∘ {n = suc n} f g = ExtΠ λ A → ExtΣ refl refl (Ext≡ _ _)
 gSetAss {n = zero} f g h = refl
-gSetAss {n = suc n} (f , _) (g , _) (h , _) = 
+gSetAss {n = suc n} (f , _) (g , _) (h , _) =
   ExtΣ (gSetAss f g h) refl (Ext≡ _ _)
 
 
 gSetId {n = zero} {X} = id
-gSetId {n = suc n} {X , Xₙ₊₁ , φX} = gSetId , id , 
+gSetId {n = suc n} {X , Xₙ₊₁ , φX} = gSetId , id ,
   ExtΠ λ x → sym (cong-app gSetSphereId (φX x))
 gSetTrId = refl
 gSetCellId {n = zero} = refl
@@ -297,7 +298,7 @@ gSetRu {n = suc n} (f , _) = ExtΣ (gSetRu f) refl (Ext≡ _ _)
 -- we also introduce in the same induction two auxilliary functions.
 
 gSetPos : (ℓ : Level)(n : Nat)(B : Bat) → gSet ℓ n
-gSetPosBdry : {ℓ : Level}{n : Nat}{B : Bat}(p : Pos (suc n) B) 
+gSetPosBdry : {ℓ : Level}{n : Nat}{B : Bat}(p : Pos (suc n) B)
   → gSetSphere (gSetPos ℓ n B)
 gSetPosGlob : {ℓ : Level}{n : Nat}{B : Bat}(p p' : Pos (suc n) B)
   (par : (b : Bool) → bdryPos b p ≡ bdryPos b p') →
@@ -307,16 +308,17 @@ gSetPos ℓ zero B = Lift ℓ (Pos zero B)
 proj₁ (gSetPos ℓ (suc n) B) = gSetPos ℓ n B
 proj₁ (proj₂ (gSetPos ℓ (suc n) B)) = Lift ℓ (Pos (suc n) B)
 proj₂ (proj₂ (gSetPos ℓ (suc n) B)) (lift p) = gSetPosBdry p
-  
-gSetPosBdry {ℓ} {n = zero} p = lift (bdryPos ff p) , lift (bdryPos tt p) 
-gSetPosBdry {ℓ} {n = suc n} p = lift (bdryPos ff p) , lift (bdryPos tt p) , 
+
+gSetPosBdry {ℓ} {n = zero} p = lift (bdryPos ff p) , lift (bdryPos tt p)
+gSetPosBdry {ℓ} {n = suc n} p = lift (bdryPos ff p) , lift (bdryPos tt p) ,
   gSetPosGlob (bdryPos ff p) (bdryPos tt p) (globPos p)
 
-gSetPosGlob {n = zero} p p' par = 
-    cong₂ _,_ (cong lift (par ff)) (cong lift (par tt)) 
-gSetPosGlob {n = suc n} p p' par = 
+gSetPosGlob {n = zero} p p' par =
+    cong₂ _,_ (cong lift (par ff)) (cong lift (par tt))
+gSetPosGlob {n = suc n} p p' par =
   ExtΣ (cong lift (par ff)) (cong lift (par tt)) (Ext≡ _ _)
 
+{- 3. Computads -}
 -- We will now define by induction on a natural number n:
 -- (1) the category Compₙ of n-computads, generating data for ω-categories, and
 -- strict ω-functors between the corresponding ω-categories.
@@ -327,7 +329,7 @@ gSetPosGlob {n = suc n} p p' par =
 -- (3) the functor Sphere­ₙ : Compₙ → Set returning the set of pairs of parallel
 -- n-cells of the free ω-category generated by a computad
 -- (4) a functor Freeₙ : gSet­ₙ → Comp­ₙ viewing each globular set as a computad,
--- and each morphism of globular sets as a strict ω-functor. 
+-- and each morphism of globular sets as a strict ω-functor.
 -- (5) an auxilliary natural transformation
 -- posSphereₙ : gSetSphereₙ ⇒ Sphereₙ ∘ Freeₙ sending pairs of parallel cells of
 -- a globular set to the same pair of parallel cells, seen as generators of the
@@ -351,7 +353,7 @@ record IndData (ℓ : Level)(n : Nat) : Set (lsuc (lsuc ℓ)) where
     CompM : (C D : Comp) → Set ℓ
     Comp∘ : {C D E : Comp}(ρ : CompM D E)(σ : CompM C D) → CompM C E
     CompAss : {C D E F : Comp}(ρ : CompM E F)(σ : CompM D E)(τ : CompM C D)
-        → Comp∘ ρ (Comp∘ σ τ) ≡ Comp∘ (Comp∘ ρ σ) τ  
+        → Comp∘ ρ (Comp∘ σ τ) ≡ Comp∘ (Comp∘ ρ σ) τ
     CompId : {C : Comp} → CompM C C
     CompLu : {C D : Comp}(σ : CompM C D) → Comp∘ CompId σ ≡ σ
     CompRu : {C D : Comp}(σ : CompM C D) → Comp∘ σ CompId ≡ σ
@@ -379,9 +381,9 @@ record IndData (ℓ : Level)(n : Nat) : Set (lsuc (lsuc ℓ)) where
 
     {-5-}
     posSphere : (X : gSet ℓ n)(A : gSetSphere X) → Sphere (Free X)
-    posSphereM : {X Y : gSet ℓ n}(f : gSetM X Y) 
+    posSphereM : {X Y : gSet ℓ n}(f : gSetM X Y)
       → (posSphere Y) ∘ (gSetSphereM f) ≡ SphereM (FreeM f) ∘ (posSphere X)
-    
+
     {-6-}
     -- In the presence of Uniqueness of Identity Proofs, one can see that
     -- (Full A) is actually a proposition, but we will not need that.
@@ -395,20 +397,21 @@ record AllData (ℓ : Level)(n : Nat) : Set (lsuc (lsuc ℓ)) where
   field
     {-7-}
     u : (pos : n > 0) → (C : Comp) → IndData.Comp (prev pos)
-    uM : (pos : n > 0){C D : Comp}(σ : CompM C D) → 
+    uM : (pos : n > 0){C D : Comp}(σ : CompM C D) →
       IndData.CompM (prev pos) (u pos C) (u pos D)
     u∘ : (pos : n > 0){C D E : Comp}(ρ : CompM D E)(σ : CompM C D)
       → IndData.Comp∘ (prev pos) (uM pos ρ) (uM pos σ) ≡ uM pos (Comp∘ ρ σ)
-    uId : (pos : n > 0){C : Comp} 
+    uId : (pos : n > 0){C : Comp}
       → uM pos (CompId {C}) ≡ IndData.CompId (prev pos)
 
     {-8-}
-    bdry : (pos : n > 0)(C : Comp) → Cell C 
+    bdry : (pos : n > 0)(C : Comp) → Cell C
       → IndData.Sphere (prev pos) (u pos C)
-    bdryM : (pos : n > 0){C D : Comp}(σ : CompM C D) 
-      → (bdry pos D) ∘ (CellM σ) ≡ 
+    bdryM : (pos : n > 0){C D : Comp}(σ : CompM C D)
+      → (bdry pos D) ∘ (CellM σ) ≡
         (IndData.SphereM (prev pos) (uM pos σ)) ∘ (bdry pos C)
 
+{- 3.1 Base Case -}
 --------------------------------------------------------------------------------
 -- We will define a function Data : (n : Nat) → AllData n recursively on n,
 -- whose base step and inductive step contain the definitions of Section 3.1.
@@ -427,7 +430,7 @@ module Zero (ℓ : Level) where
     → Pos zero B → Bool
 
   prev Data ()
-  u Data () 
+  u Data ()
   uM Data ()
   u∘ Data ()
   uId Data ()
@@ -454,17 +457,19 @@ module Zero (ℓ : Level) where
   FreeId (curr Data) = refl
   posSphere (curr Data) X = id
   posSphereM (curr Data) f = refl
-  Full (curr Data) (s , t) = 
+  Full (curr Data) (s , t) =
     (supp s ≡ bdryPosSet ff) × (supp t ≡ bdryPosSet tt)
   supp (lift p) = Singleton p
 
+{- 3.2 Inductive Step -}
 --------------------------------------------------------------------------------
 -- We proceed now with the inductive step. For that, we assume that all data has
 -- been defined for some n, and we define it for n+1. We will define the data in
--- the same order as they are presented in Section 3.3 of the paper. 
+-- the same order as they are presented in Section 3.3 of the paper.
 
 module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
 
+{- 3.2.1 Computads -}
 --------------------------------------------------------------------------------
 -- We define first the class of (n+1)-computads and the actions of the forgetful
 -- functor and the free functor on objects. We will also define two auxilliary
@@ -472,11 +477,11 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
 -- function returning their source and target.
 
   Comp : Set (lsuc ℓ)
-  Comp = 
+  Comp =
     Σ[ C ∈ IndData.Comp prev ]
-    Σ[ V ∈ Set ℓ ] 
+    Σ[ V ∈ Set ℓ ]
     (V → IndData.Sphere prev C)
-  
+
   u : Comp → IndData.Comp prev
   u (C , _ , _) = C
 
@@ -487,9 +492,10 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   bdryVar (_ , _ , φ) = φ
 
   Free : gSet ℓ (suc n) → Comp
-  Free (X , Xₙ₊₁ , φX) = 
+  Free (X , Xₙ₊₁ , φX) =
     IndData.Free prev X , Xₙ₊₁ , (IndData.posSphere prev X) ∘ φX
 
+{- 3.2.2 Morphisms, cells and their boundary -}
 --------------------------------------------------------------------------------
 -- We then define inductively-recursively the sets of cells, their boundary
 -- spheres, the sets of homomorphisms of computads, and their action of the
@@ -504,7 +510,7 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
     Σ[ σ ∈ IndData.CompM prev (u C) (u D) ]
     Σ[ σV ∈ (gen C → Cell D) ]
     (bdry D) ∘ σV ≡ (IndData.SphereM prev σ) ∘ (bdryVar C)
-  
+
   uM (σ , _) = σ
 
   data Cell C where
@@ -516,6 +522,7 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   bdry C (var v) = bdryVar C v
   bdry C (coh B A fl τ) = IndData.SphereM prev (uM τ) A
 
+{- 3.2.3 Composition -}
 --------------------------------------------------------------------------------
 -- Having defined homomorphisms and cells, we may define mutually recursively
 -- composition of homomorphisms, the action of homomorphisms on cells and prove
@@ -523,12 +530,12 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
 
   Comp∘ : {C D E : Comp}(ρ : CompM D E)(σ : CompM C D) → CompM C E
   CellM : {C D : Comp}(σ : CompM C D) → Cell C → Cell D
-  bdryM : {C D : Comp}(σ : CompM C D)(c : Cell C) 
+  bdryM : {C D : Comp}(σ : CompM C D)(c : Cell C)
     → bdry D (CellM σ c) ≡ IndData.SphereM prev (uM σ) (bdry C c)
 
-  Comp∘ {C} {D} {E} ρ@(ρn , ρV , ∂ρ) σ@(σn , σV , ∂σ) = 
+  Comp∘ {C} {D} {E} ρ@(ρn , ρV , ∂ρ) σ@(σn , σV , ∂σ) =
     IndData.Comp∘ prev ρn σn , CellM ρ ∘ σV , ExtΠ λ v → begin
-      bdry E (CellM ρ (σV v)) 
+      bdry E (CellM ρ (σV v))
         ≡⟨ bdryM ρ (σV v) ⟩
       IndData.SphereM prev ρn (bdry D (σV v))
         ≡⟨ cong (IndData.SphereM prev ρn) (cong-app ∂σ v) ⟩
@@ -540,21 +547,22 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   CellM σ (coh B A fl τ) = coh B A fl (Comp∘ σ τ)
 
   bdryM (σ , σV , σ∂) (var v) = cong-app σ∂ v
-  bdryM (σ , σV , σ∂) (coh B A fl τ) = 
-    sym (cong-app (IndData.Sphere∘ prev σ (uM τ)) A) 
+  bdryM (σ , σV , σ∂) (coh B A fl τ) =
+    sym (cong-app (IndData.Sphere∘ prev σ (uM τ)) A)
 
+{- 3.2.4 Axioms of a category -}
 --------------------------------------------------------------------------------
 -- We prove similarly by mutual induction that composition is associtive and
 -- the functor Cell preserves the composition operation
-  
+
   CompAss : {C D E F : Comp}(ρ : CompM E F)(σ : CompM D E)(τ : CompM C D)
-    → Comp∘ ρ (Comp∘ σ τ) ≡ Comp∘ (Comp∘ ρ σ) τ  
+    → Comp∘ ρ (Comp∘ σ τ) ≡ Comp∘ (Comp∘ ρ σ) τ
   Cell∘ : {C D E : Comp}(ρ : CompM D E)(σ : CompM C D)(c : Cell C)
     → CellM ρ (CellM σ c) ≡ CellM (Comp∘ ρ σ) c
 
-  CompAss ρ σ τ@(_ , τV , _) = ExtΣ (IndData.CompAss prev (uM ρ) (uM σ) (uM τ)) 
+  CompAss ρ σ τ@(_ , τV , _) = ExtΣ (IndData.CompAss prev (uM ρ) (uM σ) (uM τ))
     (ExtΠ λ v → Cell∘ ρ σ (τV v)) (Ext≡ _ _)
-  
+
   Cell∘ ρ σ (var v) = refl
   Cell∘ ρ σ (coh B A fl τ) = cong (coh B A fl) (CompAss ρ σ τ)
 
@@ -564,7 +572,7 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
 -- by the functor Cell.
 
   CompId : {C : Comp} → CompM C C
-  CompId {C}= IndData.CompId prev , var , 
+  CompId {C}= IndData.CompId prev , var ,
     ExtΠ λ v → sym (cong-app (IndData.SphereId prev) (bdryVar C v))
 
   CompRu : {C D : Comp}(σ : CompM C D) → Comp∘ σ CompId ≡ σ
@@ -573,8 +581,8 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
 
   CompLu : {C D : Comp}(σ : CompM C D) → Comp∘ CompId σ ≡ σ
   CellId : {C : Comp}(c : Cell C) → CellM CompId c ≡ c
-  
-  CompLu (σ , σV , _) = ExtΣ (IndData.CompLu prev σ) 
+
+  CompLu (σ , σV , _) = ExtΣ (IndData.CompLu prev σ)
     (ExtΠ λ v → CellId (σV v)) (Ext≡ _ _)
   CellId (var v) = refl
   CellId (coh B A fl τ) = cong (coh B A fl) (CompLu τ)
@@ -590,6 +598,7 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   uId : {C : Comp} → uM (CompId {C}) ≡ IndData.CompId prev
   uId = refl
 
+{- 3.2.5 Spheres -}
 --------------------------------------------------------------------------------
 -- We proceed now to define the functor of spheres.
 
@@ -597,11 +606,11 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   Sphere C = Σ[ s ∈ Cell C ] Σ[ t ∈ Cell C ] (bdry C s ≡ bdry C t)
 
   SphereM : {C D : Comp}(σ : CompM C D)(A : Sphere C) → Sphere D
-  SphereM {C} {D} σ (s , t , h) = (CellM σ s , CellM σ t , (begin 
-    bdry D (CellM σ s) 
-      ≡⟨ bdryM σ s ⟩  
+  SphereM {C} {D} σ (s , t , h) = (CellM σ s , CellM σ t , (begin
+    bdry D (CellM σ s)
+      ≡⟨ bdryM σ s ⟩
     IndData.SphereM prev (uM σ) (bdry C s)
-      ≡⟨ cong (IndData.SphereM prev (uM σ)) h ⟩  
+      ≡⟨ cong (IndData.SphereM prev (uM σ)) h ⟩
     IndData.SphereM prev (uM σ) (bdry C t)
       ≡⟨ sym (bdryM σ t) ⟩
     bdry D (CellM σ t)
@@ -614,55 +623,58 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   SphereId : {C : Comp} → SphereM (CompId {C}) ≡ id
   SphereId = ExtΠ λ (s , t , h) → ExtΣ (CellId s) (CellId t) (Ext≡ _ _)
 
+{- 3.2.6 The free functor -}
 --------------------------------------------------------------------------------
 -- We define now the action of Free on morphisms and show that it is functorial.
 -- We then define the auxilliary natural transformation posSphere that is used
 -- to define Free.
 
   FreeM : {X Y : gSet ℓ (suc n)}(f : gSetM X Y) → CompM (Free X) (Free Y)
-  FreeM {X} {Y} (f , fₙ₊₁ , f∂) = 
+  FreeM {X} {Y} (f , fₙ₊₁ , f∂) =
     (IndData.FreeM prev f , var ∘ fₙ₊₁ , ExtΠ λ x → begin
       IndData.posSphere prev (gSetTr Y) (gSetBdry Y (fₙ₊₁ x))
-        ≡⟨ cong (IndData.posSphere prev (gSetTr Y)) (cong-app f∂ x) ⟩ 
+        ≡⟨ cong (IndData.posSphere prev (gSetTr Y)) (cong-app f∂ x) ⟩
       IndData.posSphere prev (gSetTr Y) (gSetSphereM f (gSetBdry X x))
         ≡⟨ cong-app (IndData.posSphereM prev f) (gSetBdry X x) ⟩
-      IndData.SphereM prev (IndData.FreeM prev f) 
+      IndData.SphereM prev (IndData.FreeM prev f)
       (IndData.posSphere prev (gSetTr X) (gSetBdry X x))
         ∎)
 
   Free∘ : {X Y Z : gSet ℓ (suc n)}(f : gSetM Y Z)(g : gSetM X Y)
-    → Comp∘ (FreeM {Y} {Z} f) (FreeM {X} {Y} g) ≡ 
+    → Comp∘ (FreeM {Y} {Z} f) (FreeM {X} {Y} g) ≡
     FreeM (gSet∘ {ℓ} {suc n} {X} {Y} {Z} f g)
-  Free∘ {X} {Y} {Z} (f , fₙ₊₁ , f∂) (g , gₙ₊₁ , g∂) = 
+  Free∘ {X} {Y} {Z} (f , fₙ₊₁ , f∂) (g , gₙ₊₁ , g∂) =
     ExtΣ (IndData.Free∘ prev f g) refl (Ext≡ _ _)
 
   FreeId : {X : gSet ℓ (suc n)} → FreeM (gSetId {X = X}) ≡ CompId
   FreeId = ExtΣ (IndData.FreeId prev) refl (Ext≡ _ _)
 
   posSphere : (X : gSet ℓ (suc n))(A : gSetSphere X) → Sphere (Free X)
-  posSphere X (s , t , h) = 
+  posSphere X (s , t , h) =
     (var s , var t , cong (IndData.posSphere prev (gSetTr X)) h)
 
-  posSphereM : {X Y : gSet ℓ (suc n)}(f : gSetM X Y) 
+  posSphereM : {X Y : gSet ℓ (suc n)}(f : gSetM X Y)
     → (posSphere Y) ∘ (gSetSphereM f) ≡ SphereM (FreeM f) ∘ (posSphere X)
-  posSphereM {X} {Y} (f , fₙ₊₁ , f∂) = 
+  posSphereM {X} {Y} (f , fₙ₊₁ , f∂) =
     ExtΠ λ (s , t , h) → ExtΣ refl refl (Ext≡ _ _)
 
+{- 3.2.7 Support and fullness -}
 --------------------------------------------------------------------------------
 -- We define now the support of a cell over a Batanin tree, and the set of full
 -- spheres.
 
-  supp : {B : Bat}(c : Cell (Free (gSetPos ℓ (suc n) B))) 
+  supp : {B : Bat}(c : Cell (Free (gSetPos ℓ (suc n) B)))
     → Pos (suc n) B → Bool
   supp (var (lift p)) = Singleton p
   supp (coh B A fl (_ , τV , _)) = Union λ q → supp (τV (lift q))
 
   Full : {B : Bat}(A : Sphere (Free (gSetPos ℓ (suc n) B))) → Set₀
-  Full {B} (s , t , h) = 
-    (supp s ≡ bdryPosSet ff) × 
-    (supp t ≡ bdryPosSet tt) × 
+  Full {B} (s , t , h) =
+    (supp s ≡ bdryPosSet ff) ×
+    (supp t ≡ bdryPosSet tt) ×
     (IndData.Full prev (bdry (Free (gSetPos ℓ (suc n) B)) s))
 
+{- 3.3 Unpacking the definition -}
 --------------------------------------------------------------------------------
 -- We finally conclude the inductive step by packing the data above into an
 -- instance of AllData.
@@ -694,8 +706,8 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   AllData.uM Data _ = uM
   AllData.u∘ Data _ = u∘
   AllData.uId Data _ {C} = uId {C}
-  AllData.bdry Data _ = bdry   
-  AllData.bdryM Data _ σ = ExtΠ (bdryM σ)     
+  AllData.bdry Data _ = bdry
+  AllData.bdryM Data _ σ = ExtΠ (bdryM σ)
 
 --------------------------------------------------------------------------------
 -- Having defined both the base case and the inductive step, we can now define
@@ -709,14 +721,14 @@ Data ℓ (suc n) = Step.Data ℓ n (AllData.curr (Data ℓ n))
 {- The categories of n-computads -}
 Comp : (ℓ : Level)(n : Nat) → Set (lsuc ℓ)
 CompM : {ℓ : Level}{n : Nat}(C D : Comp ℓ n) → Set ℓ
-Comp∘ : {ℓ : Level}{n : Nat}{C D E : Comp ℓ n}(ρ : CompM D E)(σ : CompM C D) 
+Comp∘ : {ℓ : Level}{n : Nat}{C D E : Comp ℓ n}(ρ : CompM D E)(σ : CompM C D)
   → CompM C E
 CompAss : {ℓ : Level}{n : Nat}{C D E F : Comp ℓ n}(ρ : CompM E F)(σ : CompM D E)
-  (τ : CompM C D) → Comp∘ ρ (Comp∘ σ τ) ≡ Comp∘ (Comp∘ ρ σ) τ  
+  (τ : CompM C D) → Comp∘ ρ (Comp∘ σ τ) ≡ Comp∘ (Comp∘ ρ σ) τ
 CompId : {ℓ : Level}{n : Nat}{C : Comp ℓ n} → CompM C C
-CompLu : {ℓ : Level}{n : Nat}{C D : Comp ℓ n}(σ : CompM C D) 
+CompLu : {ℓ : Level}{n : Nat}{C D : Comp ℓ n}(σ : CompM C D)
   → Comp∘ CompId σ ≡ σ
-CompRu : {ℓ : Level}{n : Nat}{C D : Comp ℓ n}(σ : CompM C D) 
+CompRu : {ℓ : Level}{n : Nat}{C D : Comp ℓ n}(σ : CompM C D)
   → Comp∘ σ CompId ≡ σ
 
 {- The functors of cells -}
@@ -728,7 +740,7 @@ CellId : {ℓ : Level}{n : Nat}{C : Comp ℓ n} → CellM (CompId {C = C}) ≡ i
 
 {- The functors of spheres -}
 Sphere : {ℓ : Level}{n : Nat}(C : Comp ℓ n) → Set ℓ
-SphereM : {ℓ : Level}{n : Nat}{C D : Comp ℓ n}(σ : CompM C D) → Sphere C 
+SphereM : {ℓ : Level}{n : Nat}{C D : Comp ℓ n}(σ : CompM C D) → Sphere C
   → Sphere D
 Sphere∘ : {ℓ : Level}{n : Nat}{C D E : Comp ℓ n}(ρ : CompM D E)(σ : CompM C D)
   → (SphereM ρ) ∘ (SphereM σ) ≡ SphereM (Comp∘ ρ σ)
@@ -736,7 +748,7 @@ SphereId : {ℓ : Level}{n : Nat}{C : Comp ℓ n} → SphereM (CompId {C = C}) �
 
 {- The free functors -}
 Free : {ℓ : Level}{n : Nat}(X : gSet ℓ n) → Comp ℓ n
-FreeM : {ℓ : Level}{n : Nat}{X Y : gSet ℓ n}(f : gSetM X Y) 
+FreeM : {ℓ : Level}{n : Nat}{X Y : gSet ℓ n}(f : gSetM X Y)
   → CompM (Free X) (Free Y)
 Free∘ : {ℓ : Level}{n : Nat}{X Y Z : gSet ℓ n}(f : gSetM Y Z)(g : gSetM X Y)
   → Comp∘ (FreeM f) (FreeM g) ≡ FreeM (gSet∘ f g)
@@ -744,7 +756,7 @@ FreeId : {ℓ : Level}{n : Nat}{X : gSet ℓ n} → FreeM (gSetId {X = X}) ≡ C
 
 {- The truncation functors -}
 u : {ℓ : Level}{n : Nat} → (C : Comp ℓ (suc n)) → Comp ℓ n
-uM : {ℓ : Level}{n : Nat}{C D : Comp ℓ (suc n)}(σ : CompM C D) 
+uM : {ℓ : Level}{n : Nat}{C D : Comp ℓ (suc n)}(σ : CompM C D)
   → CompM (u C) (u D)
 u∘ : {ℓ : Level}{n : Nat}{C D E : Comp ℓ (suc n)}(ρ : CompM D E)(σ : CompM C D)
   → Comp∘ (uM ρ) (uM σ) ≡ uM (Comp∘ ρ σ)
@@ -752,7 +764,7 @@ uId : {ℓ : Level}{n : Nat}{C : Comp ℓ (suc n)} → uM (CompId {C = C}) ≡ C
 
 {- The boundary natural transformation -}
 bdry : {ℓ : Level}{n : Nat}(C : Comp ℓ (suc n)) → Cell C → Sphere (u C)
-bdryM : {ℓ : Level}{n : Nat}{C D : Comp ℓ (suc n)}(σ : CompM C D) 
+bdryM : {ℓ : Level}{n : Nat}{C D : Comp ℓ (suc n)}(σ : CompM C D)
   → (bdry D) ∘ (CellM σ) ≡ (SphereM (uM σ)) ∘ (bdry C)
 
 --------------------------------------------------------------------------------
