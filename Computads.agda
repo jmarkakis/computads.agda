@@ -43,7 +43,7 @@ ExtΣ : {ℓ : Level}{A B : Set ℓ}{C : A → B → Set ℓ}{a a' : A}{b b' : B
   (a , b , c) ≡ (a' , b' , c')
 ExtΣ = cong₃ (λ a b c → a , b , c)
 
-{- 1. Batanin Trees -}
+{- Section 2, "Batanin Trees" -}
 --------------------------------------------------------------------------------
 -- We start by defining Batanin trees and their dimension. We also give an
 -- inductive definition of the globular set of positions of a Batanin tree B,
@@ -153,7 +153,6 @@ Union : {u : Level}{n : Nat}{B : Bat}{X : Set u}(S : Pos n B → X → Bool)
   → X → Bool
 Union S x = suprBool (λ p → S p x)
 
-{- 2. Globular Sets -}
 --------------------------------------------------------------------------------
 -- We will now introduce by induction on the dimension n:
 -- (1) the category gSet­ₙ of n-globular sets
@@ -318,7 +317,7 @@ gSetPosGlob {n = zero} p p' par =
 gSetPosGlob {n = suc n} p p' par =
   ExtΣ (cong lift (par ff)) (cong lift (par tt)) (Ext≡ _ _)
 
-{- 3. Computads -}
+{- Section 3.1, "Main Definition" -}
 -- We will now define by induction on a natural number n:
 -- (1) the category Compₙ of n-computads, generating data for ω-categories, and
 -- strict ω-functors between the corresponding ω-categories.
@@ -411,7 +410,6 @@ record AllData (ℓ : Level)(n : Nat) : Set (lsuc (lsuc ℓ)) where
       → (bdry pos D) ∘ (CellM σ) ≡
         (IndData.SphereM (prev pos) (uM pos σ)) ∘ (bdry pos C)
 
-{- 3.1 Base Case -}
 {- Section 3.1, "Base case" -}
 --------------------------------------------------------------------------------
 -- We will define a function Data : (n : Nat) → AllData n recursively on n,
@@ -462,8 +460,7 @@ module Zero (ℓ : Level) where
     (supp s ≡ bdryPosSet ff) × (supp t ≡ bdryPosSet tt)
   supp (lift p) = Singleton p
 
-{- 3.2 Inductive Step -}
-{- Section 3.1, Inductive Step -}
+{- Section 3.1, "Inductive Step" -}
 --------------------------------------------------------------------------------
 -- We proceed now with the inductive step. For that, we assume that all data has
 -- been defined for some n, and we define it for n+1. We will define the data in
@@ -497,7 +494,7 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   Free (X , Xₙ₊₁ , φX) =
     IndData.Free prev X , Xₙ₊₁ , (IndData.posSphere prev X) ∘ φX
 
-{- 3.2.2 Morphisms, cells and their boundary -}
+{-  Section 3.1, "Morphisms" and "Cells and their boundary" -}
 --------------------------------------------------------------------------------
 -- We then define inductively-recursively the sets of cells, their boundary
 -- spheres, the sets of homomorphisms of computads, and their action of the
@@ -524,7 +521,7 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   bdry C (var v) = bdryVar C v
   bdry C (coh B A fl τ) = IndData.SphereM prev (uM τ) A
 
-{- 3.2.3 Composition -}
+{- Section 3.1, "Composition and functoriality of cells" -}
 --------------------------------------------------------------------------------
 -- Having defined homomorphisms and cells, we may define mutually recursively
 -- composition of homomorphisms, the action of homomorphisms on cells and prove
@@ -552,7 +549,7 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   bdryM (σ , σV , σ∂) (coh B A fl τ) =
     sym (cong-app (IndData.Sphere∘ prev σ (uM τ)) A)
 
-{- 3.2.4 Axioms of a category -}
+{- Section 3.1 "Categorical Axioms" -}
 --------------------------------------------------------------------------------
 -- We prove similarly by mutual induction that composition is associtive and
 -- the functor Cell preserves the composition operation
@@ -600,7 +597,7 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   uId : {C : Comp} → uM (CompId {C}) ≡ IndData.CompId prev
   uId = refl
 
-{- 3.2.5 Spheres -}
+{- Section 3.1, "Spheres" -}
 --------------------------------------------------------------------------------
 -- We proceed now to define the functor of spheres.
 
@@ -625,7 +622,7 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   SphereId : {C : Comp} → SphereM (CompId {C}) ≡ id
   SphereId = ExtΠ λ (s , t , h) → ExtΣ (CellId s) (CellId t) (Ext≡ _ _)
 
-{- 3.2.6 The free functor -}
+{- Section 3.1, "Globular sets" -}
 --------------------------------------------------------------------------------
 -- We define now the action of Free on morphisms and show that it is functorial.
 -- We then define the auxilliary natural transformation posSphere that is used
@@ -660,7 +657,7 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   posSphereM {X} {Y} (f , fₙ₊₁ , f∂) =
     ExtΠ λ (s , t , h) → ExtΣ refl refl (Ext≡ _ _)
 
-{- 3.2.7 Support and fullness -}
+{- Section 3.1, "Support" and "Fullness" -}
 --------------------------------------------------------------------------------
 -- We define now the support of a cell over a Batanin tree, and the set of full
 -- spheres.
@@ -676,7 +673,8 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
     (supp t ≡ bdryPosSet tt) ×
     (IndData.Full prev (bdry (Free (gSetPos ℓ (suc n) B)) s))
 
-{- 3.3 Unpacking the definition -}
+--------------------------------------------------------------------------------
+{- Unpacking the definition -}
 --------------------------------------------------------------------------------
 -- We finally conclude the inductive step by packing the data above into an
 -- instance of AllData.
