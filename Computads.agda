@@ -412,6 +412,7 @@ record AllData (ℓ : Level)(n : Nat) : Set (lsuc (lsuc ℓ)) where
         (IndData.SphereM (prev pos) (uM pos σ)) ∘ (bdry pos C)
 
 {- 3.1 Base Case -}
+{- Section 3.1, "Base case" -}
 --------------------------------------------------------------------------------
 -- We will define a function Data : (n : Nat) → AllData n recursively on n,
 -- whose base step and inductive step contain the definitions of Section 3.1.
@@ -462,6 +463,7 @@ module Zero (ℓ : Level) where
   supp (lift p) = Singleton p
 
 {- 3.2 Inductive Step -}
+{- Section 3.1, Inductive Step -}
 --------------------------------------------------------------------------------
 -- We proceed now with the inductive step. For that, we assume that all data has
 -- been defined for some n, and we define it for n+1. We will define the data in
@@ -469,7 +471,7 @@ module Zero (ℓ : Level) where
 
 module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
 
-{- 3.2.1 Computads -}
+{- Section 3.1, "Objects" -}
 --------------------------------------------------------------------------------
 -- We define first the class of (n+1)-computads and the actions of the forgetful
 -- functor and the free functor on objects. We will also define two auxilliary
