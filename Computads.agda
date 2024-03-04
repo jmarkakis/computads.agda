@@ -549,7 +549,6 @@ module Step (ℓ : Level)(n : Nat)(prev : IndData ℓ n) where
   bdryM (σ , σV , σ∂) (coh B A fl τ) =
     sym (cong-app (IndData.Sphere∘ prev σ (uM τ)) A)
 
-{- Section 3.1 "Categorical Axioms" -}
 --------------------------------------------------------------------------------
 -- We prove similarly by mutual induction that composition is associtive and
 -- the functor Cell preserves the composition operation
